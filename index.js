@@ -67,8 +67,14 @@ Promise.all(fixtures.map(fixture => {
     benchmark(fixture.name, 'yarn', ['--force', '--ignore-scripts']),
     benchmark(fixture.name, 'pnpm', ['install', '--ignore-scripts', '--store-path', 'node_modules/.store']),
   ])
+  .then(_ => {
+    fs.writeFile('./src/stats.json', 'utf8')
+    return _;
+  })
   .then(results => {
     const [npmResults, yarnResults, pnpmResults] = results
+
+
     return stripIndents`
       ${fixture.mdDesc}
 

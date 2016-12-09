@@ -3,12 +3,13 @@ const path = require('path')
 const child = require('child_process')
 const mkdirp = require('mkdirp').sync
 const rimraf = require('rimraf').sync
-const fs = require('fs')
 const pathKey = require('path-key')
 const thenify = require('thenify')
 const getFolderSize = thenify(require('get-folder-size'))
 const copy = thenify(require('fs-extra').copy)
 const stripIndents = require('common-tags').stripIndents
+const pify = require('pify')
+const fs = pify(require('fs'));
 
 const PATH = pathKey()
 
@@ -67,13 +68,12 @@ Promise.all(fixtures.map(fixture => {
     benchmark(fixture.name, 'yarn', ['--force', '--ignore-scripts']),
     benchmark(fixture.name, 'pnpm', ['install', '--ignore-scripts', '--store-path', 'node_modules/.store']),
   ])
-  .then(_ => {
-    fs.writeFile('./src/stats.json', 'utf8')
-    return _;
+  .then(results => {
+    return fs.writeFile('./src/stats.json', results, 'utf8')
+      .then(() => results)
   })
   .then(results => {
     const [npmResults, yarnResults, pnpmResults] = results
-
 
     return stripIndents`
       ${fixture.mdDesc}
@@ -86,10 +86,13 @@ Promise.all(fixtures.map(fixture => {
   })
 }))
 .then(sections => {
-  fs.writeFile('README.md', stripIndents`
+  return fs.writeFile('README.md', stripIndents`
     # Node package manager benchmark
 
     This benchmark compares the performance of [npm](https://github.com/npm/npm), [pnpm](https://github.com/rstacruz/pnpm) and [yarn](https://github.com/yarnpkg/yarn).
 
     ${sections.join('\n\n')}`, 'utf8')
+}).catch(e => {
+  process.exitCode = -1;
+  console.error(e);
 })

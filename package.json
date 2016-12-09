@@ -28,5 +28,8 @@
     "rimraf": "^2.5.4",
     "thenify": "^3.2.1",
     "yarn": "^0.16.1"
+  },
+  "devDependencies": {
+    "pify": "^2.3.0"
   }
 }

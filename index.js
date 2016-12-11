@@ -69,7 +69,7 @@ Promise.all(fixtures.map(fixture => {
     benchmark(fixture.name, 'pnpm', ['install', '--ignore-scripts', '--store-path', 'node_modules/.store']),
   ])
   .then(results => {
-    return fs.writeFile('./src/stats.json', results, 'utf8')
+    return fs.writeFile('./stats.json', JSON.stringify(results, null, 2), 'utf8')
       .then(() => results)
   })
   .then(results => {
